@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { promises } = require('fs/promises');
 const { readdir } = require('fs/promises');
 const path = require('path');
 
@@ -20,23 +19,27 @@ fs.readFile(pathToTemplate, 'utf-8', (err, template) => {
   if (err) throw err;
   fs.readdir(pathToComponents, (err, files) => {
     if (err) throw err;
-    files.forEach((f) => {
+
+    const fileData = (Idx) => {
+      if (Idx >= files.length) return;
+      const f = files[Idx];
+
       fs.readFile(path.join(pathToComponents, f), 'utf-8', (err, file) => {
-        // console.log(path.join(pathToComponents, f));
         if (err) throw err;
         let fileName = f.split('.')[0];
-        console.log(fileName);
+        let braketsTemp = `{{${fileName}}}`;
 
-        if (template.includes(`{{${fileName}}}`)) {
-          // template = template.replaceAll(new RegExp('{{${fileName}}}', 'g'), file);
-          template = template.replace(`{{${fileName}}}`, `${file}`);
-          // console.log(template.includes(`{{${fileName}}}`));
-        }
+        template.includes(braketsTemp) 
+          ? template = template.replace(new RegExp(`{{${fileName}}}`), `${file}`)
+          : template;
+        
         fs.writeFile(pathToDISTHTML, template, (err) => {
+          fileData(Idx + 1);
           if (err) throw err;
         });
       });
-    });
+    };
+    fileData(0);
   });
 });
 
